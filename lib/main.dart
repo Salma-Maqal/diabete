@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(const MyApp());
   print("SALMA TEST");
+  print("BINOME TEST");
 }
 
 class MyApp extends StatelessWidget {
