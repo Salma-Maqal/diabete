@@ -21,14 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!mounted) return;
 
-    // Validation basique
     if (_emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
       setState(() { _loading = false; _error = 'Veuillez remplir tous les champs.'; });
       return;
     }
 
     setState(() => _loading = false);
-    // Diagramme: Se connecter → Accès Dashboard
     Navigator.pushReplacementNamed(context, '/dashboard');
   }
 
@@ -79,11 +77,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
+
+                  // ✅ "Mot de passe oublié ?" — maintenant cliquable
                   Align(
                     alignment: Alignment.centerRight,
-                    child: Text('Mot de passe oublié ?',
-                        style: TextStyle(color: AppColors.c5, fontSize: 13, fontWeight: FontWeight.w500)),
+                    child: GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, '/forgot-password'),
+                      child: const Text(
+                        'Mot de passe oublié ?',
+                        style: TextStyle(
+                          color: AppColors.c5,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ),
+
                   const SizedBox(height: 36),
                   PrimaryButton(label: 'Se connecter', onPressed: _login, loading: _loading),
                   const SizedBox(height: 24),
@@ -94,7 +104,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     Expanded(child: Divider(color: AppColors.c3, thickness: 1)),
                   ]),
                   const SizedBox(height: 24),
-                  // Diagramme: → Créer compte
                   Center(
                     child: GestureDetector(
                       onTap: () => Navigator.pushReplacementNamed(context, '/signup'),
