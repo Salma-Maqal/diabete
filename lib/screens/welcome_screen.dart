@@ -33,10 +33,10 @@ class WelcomeScreen extends StatelessWidget {
                   SizedBox(height: h * 0.28),
                   const Text('Welcome',
                       style: TextStyle(fontSize: 40, fontWeight: FontWeight.w800,
-                          color: AppColors.textDark)),
+                          color: Color.fromARGB(255, 38, 47, 19))),
                   const SizedBox(height: 14),
                   Text('Gérez votre diabète au quotidien.\nSuivez, analysez et restez en bonne santé.',
-                      style: TextStyle(fontSize: 15, color: AppColors.textGrey, height: 1.6)),
+                      style: TextStyle(fontSize: 15, color: const Color.fromARGB(255, 6, 6, 6), height: 1.6)),
                   SizedBox(height: h * 0.06),
 
                   // Diagramme: Non (pas de compte) → Créer compte
@@ -73,7 +73,7 @@ class WelcomeScreen extends StatelessWidget {
                     onTap: () => Navigator.pushNamed(context, '/login'),
                     child: Text('Déjà un compte ? Se connecter',
                         style: TextStyle(
-                            color: AppColors.c5, fontSize: 14,
+                            color: const Color.fromARGB(255, 23, 35, 2), fontSize: 14,
                             fontWeight: FontWeight.w500,
                             decoration: TextDecoration.underline,
                             decorationColor: AppColors.c5)),
