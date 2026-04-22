@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_colors.dart';
 import '../widgets/common_widgets.dart';
+import '../user_session.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -25,7 +26,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() { _error = null; });
 
     if (!_agreeTerms) {
-      setState(() => _error = 'Veuillez accepter les conditions d\'utilisation.');
+      setState(() => _error = "Veuillez accepter les conditions d'utilisation.");
       return;
     }
     if (_passCtrl.text != _confirmCtrl.text) {
@@ -39,12 +40,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     setState(() => _loading = true);
+    // Save user to session
+    await UserSession().save(
+      nom: _nomCtrl.text.trim(),
+      prenom: _prenomCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+    );
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     setState(() => _loading = false);
 
-    // Diagramme: Rôle ? → Diabétique → Remplir infos santé
-    //                    → Accompagnant → Remplir infos accompagnant
     if (_role == 'diabetique') {
       Navigator.pushNamed(context, '/health-info');
     } else {
@@ -85,7 +90,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       child: Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
                     ),
-                  // Nom + Prénom
                   Row(children: [
                     Expanded(child: AuthField(label: 'Nom', controller: _nomCtrl, hint: 'Benali')),
                     const SizedBox(width: 12),
@@ -112,7 +116,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                       )),
                   const SizedBox(height: 18),
-                  // Rôle — Diagramme: Rôle ? diamond
                   const Text('Votre rôle',
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                   const SizedBox(height: 8),
@@ -130,7 +133,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     )),
                   ]),
                   const SizedBox(height: 16),
-                  // Checkbox conditions
                   GestureDetector(
                     onTap: () => setState(() => _agreeTerms = !_agreeTerms),
                     child: Row(children: [
@@ -147,11 +149,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const SizedBox(width: 10),
                       Expanded(child: RichText(
                         text: TextSpan(
-                          style: TextStyle(fontSize: 12, color: AppColors.textGrey),
+                          style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
                           children: [
                             const TextSpan(text: "J'accepte les "),
                             TextSpan(text: "conditions d'utilisation",
-                                style: TextStyle(color: AppColors.c6, fontWeight: FontWeight.w600)),
+                                style: const TextStyle(color: AppColors.c6, fontWeight: FontWeight.w600)),
                           ],
                         ),
                       )),
@@ -164,10 +166,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: GestureDetector(
                       onTap: () => Navigator.pushReplacementNamed(context, '/login'),
                       child: RichText(
-                        text: TextSpan(
+                        text: const TextSpan(
                           style: TextStyle(fontSize: 14, color: AppColors.textGrey),
                           children: [
-                            const TextSpan(text: 'Déjà un compte ? '),
+                            TextSpan(text: 'Déjà un compte ? '),
                             TextSpan(text: 'Se connecter',
                                 style: TextStyle(color: AppColors.c6, fontWeight: FontWeight.w700)),
                           ],

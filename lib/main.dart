@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'user_session.dart';
 import 'screens/splash_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/login_screen.dart';
@@ -10,9 +11,11 @@ import 'screens/dashboard_screen.dart';
 import 'screens/add_companion_screen.dart';
 import 'screens/verify_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import 'screens/add_meal_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await UserSession().load();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
@@ -28,24 +31,23 @@ class CalmSugarApp extends StatelessWidget {
       title: 'CalmSugar',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFE7F5DC),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF728156),
-        ),
+        scaffoldBackgroundColor: const Color(0xFFF0F7E8),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2D531A)),
         useMaterial3: true,
       ),
       initialRoute: '/',
       routes: {
-        '/':                 (_) => const SplashScreen(),
-        '/welcome':          (_) => const WelcomeScreen(),
-        '/login':            (_) => const LoginScreen(),
-        '/signup':           (_) => const SignUpScreen(),
-        '/health-info':      (_) => const HealthInfoScreen(),
-        '/companion-info':   (_) => const CompanionInfoScreen(),
-        '/dashboard':        (_) => const DashboardScreen(),
-        '/add-companion':    (_) => const AddCompanionScreen(),
-        '/verify':           (_) => const VerifyScreen(),
-        '/forgot-password':  (_) => const ForgotPasswordScreen(), // ✅ جديد
+        '/':                (_) => const SplashScreen(),
+        '/welcome':         (_) => const WelcomeScreen(),
+        '/login':           (_) => const LoginScreen(),
+        '/signup':          (_) => const SignUpScreen(),
+        '/health-info':     (_) => const HealthInfoScreen(),
+        '/companion-info':  (_) => const CompanionInfoScreen(),
+        '/dashboard':       (_) => const DashboardScreen(),
+        '/add-companion':   (_) => const AddCompanionScreen(),
+        '/verify':          (_) => const VerifyScreen(),
+        '/forgot-password': (_) => const ForgotPasswordScreen(),
+        '/add-meal':        (_) => const AddMealScreen(),
       },
     );
   }
