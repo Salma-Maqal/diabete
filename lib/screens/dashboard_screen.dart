@@ -6,6 +6,8 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import '../app_colors.dart';
 import '../user_session.dart';
+import '../meal_store.dart';
+import 'edit_meal_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,10 +34,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: AppColors.c6,
         elevation: 0,
         title: const Text('CalmSugar',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontStyle: FontStyle.italic)),
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontStyle: FontStyle.italic,
+                fontSize: 22,
+                letterSpacing: 0.5)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout, color: Colors.white, size: 26),
             onPressed: () async {
               await UserSession().clear();
               if (mounted) Navigator.pushReplacementNamed(context, '/welcome');
@@ -46,17 +53,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: pages[_currentIndex],
       bottomNavigationBar: CurvedNavigationBar(
         index: _currentIndex,
-        height: 65,
+        height: 70,
         color: AppColors.c6,
         backgroundColor: Colors.transparent,
         buttonBackgroundColor: AppColors.c5,
         animationDuration: const Duration(milliseconds: 300),
         animationCurve: Curves.easeInOut,
         items: const [
-          Icon(Icons.home_rounded, size: 28, color: Colors.white),
-          Icon(Icons.monitor_heart_rounded, size: 28, color: Colors.white),
-          Icon(Icons.restaurant_rounded, size: 28, color: Colors.white),
-          Icon(Icons.person_rounded, size: 28, color: Colors.white),
+          Icon(Icons.home_rounded,         size: 32, color: Colors.white),
+          Icon(Icons.monitor_heart_rounded, size: 32, color: Colors.white),
+          Icon(Icons.restaurant_rounded,    size: 32, color: Colors.white),
+          Icon(Icons.person_rounded,        size: 32, color: Colors.white),
         ],
         onTap: (i) => setState(() => _currentIndex = i),
       ),
@@ -73,40 +80,61 @@ class _HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = UserSession().fullName.isNotEmpty ? UserSession().fullName : 'Utilisateur';
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        // ── Hero card
         Container(
-          width: double.infinity, padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: AppColors.c6, borderRadius: BorderRadius.circular(16)),
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.c6,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: AppColors.c6.withOpacity(0.3), blurRadius: 14, offset: const Offset(0, 6))],
+          ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Bonjour, $name 👋', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-            const SizedBox(height: 4),
+            Text('Bonjour, $name 👋',
+                style: const TextStyle(color: Colors.white70, fontSize: 16)),
+            const SizedBox(height: 6),
             const Text('Bienvenue sur CalmSugar',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
+                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 18),
             Row(children: [
-              _StatCard(label: 'Glycémie', value: '5.4', unit: 'mmol/L', color: AppColors.c3),
-              const SizedBox(width: 10),
-              _StatCard(label: 'Dernier repas', value: '2h', unit: 'ago', color: AppColors.c4),
+              _StatCard(label: 'Glycémie',     value: '5.4', unit: 'mmol/L', color: AppColors.c3),
+              const SizedBox(width: 12),
+              _StatCard(label: 'Dernier repas', value: '2h',  unit: 'ago',    color: AppColors.c4),
             ]),
           ]),
         ),
-        const SizedBox(height: 24),
+
+        const SizedBox(height: 30),
         const Text('Actions rapides',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+        const SizedBox(height: 14),
+
+        _ActionCard(
+          icon: Icons.person_add_outlined,
+          title: 'Ajouter un accompagnant',
+          subtitle: 'Inviter un proche à vous suivre',
+          onTap: () => Navigator.pushNamed(context, '/add-companion')),
         const SizedBox(height: 12),
-        _ActionCard(icon: Icons.person_add_outlined, title: 'Ajouter un accompagnant',
-            subtitle: 'Inviter un proche à vous suivre',
-            onTap: () => Navigator.pushNamed(context, '/add-companion')),
-        const SizedBox(height: 10),
-        _ActionCard(icon: Icons.monitor_heart_outlined, title: 'Saisir ma glycémie',
-            subtitle: 'Enregistrer une nouvelle mesure', onTap: () {}),
-        const SizedBox(height: 10),
-        _ActionCard(icon: Icons.restaurant_outlined, title: 'Journal alimentaire',
-            subtitle: 'Suivre vos repas', onTap: () {}),
-        const SizedBox(height: 10),
-        _ActionCard(icon: Icons.bar_chart_outlined, title: 'Mes statistiques',
-            subtitle: "Voir l'évolution de ma santé", onTap: () {}),
+        _ActionCard(
+          icon: Icons.monitor_heart_outlined,
+          title: 'Saisir ma glycémie',
+          subtitle: 'Enregistrer une nouvelle mesure',
+          onTap: () {}),
+        const SizedBox(height: 12),
+        _ActionCard(
+          icon: Icons.restaurant_outlined,
+          title: 'Journal alimentaire',
+          subtitle: 'Suivre vos repas',
+          onTap: () {}),
+        const SizedBox(height: 12),
+        _ActionCard(
+          icon: Icons.bar_chart_outlined,
+          title: 'Mes statistiques',
+          subtitle: "Voir l'évolution de ma santé",
+          onTap: () {}),
       ]),
     );
   }
@@ -126,72 +154,96 @@ class _GlycemiePage extends StatelessWidget {
       {'time': '19:00', 'value': 6.2, 'status': 'Normal'},
     ];
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        // ── Header card
         Container(
-          width: double.infinity, padding: const EdgeInsets.all(20),
+          width: double.infinity, padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: [AppColors.c5, AppColors.c6]),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: AppColors.c6.withOpacity(0.3), blurRadius: 14, offset: const Offset(0, 6))],
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text("Glycémie aujourd'hui", style: TextStyle(color: Colors.white70, fontSize: 13)),
-            const SizedBox(height: 6),
+            const Text("Glycémie aujourd'hui",
+                style: TextStyle(color: Colors.white70, fontSize: 15)),
+            const SizedBox(height: 8),
             const Text('5.4 mmol/L',
-                style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
+                style: TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
-              child: const Text('✅ Dans la plage normale', style: TextStyle(color: Colors.white, fontSize: 12)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20)),
+              child: const Text('✅ Dans la plage normale',
+                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
             ),
           ]),
         ),
-        const SizedBox(height: 24),
+
+        const SizedBox(height: 28),
         const Text('Historique du jour',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-        const SizedBox(height: 12),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+        const SizedBox(height: 14),
+
         ...entries.map((e) {
           final isHigh = (e['value'] as double) > 7.0;
           return Container(
-            margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isHigh ? Colors.orange.shade200 : AppColors.c3),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: isHigh ? Colors.orange.shade200 : AppColors.c3, width: 1.5),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
             ),
             child: Row(children: [
-              Container(width: 44, height: 44,
+              Container(
+                width: 52, height: 52,
                 decoration: BoxDecoration(
                   color: isHigh ? Colors.orange.shade50 : AppColors.c2,
-                  borderRadius: BorderRadius.circular(10)),
-                child: Icon(Icons.water_drop_rounded, color: isHigh ? Colors.orange : AppColors.c6)),
-              const SizedBox(width: 12),
+                  borderRadius: BorderRadius.circular(14)),
+                child: Icon(Icons.water_drop_rounded,
+                    color: isHigh ? Colors.orange : AppColors.c6, size: 26)),
+              const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(e['time'] as String, style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+                Text(e['time'] as String,
+                    style: const TextStyle(fontSize: 13, color: AppColors.textGrey, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 4),
                 Text('${e['value']} mmol/L',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark)),
               ])),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   color: isHigh ? Colors.orange.shade100 : AppColors.c2,
                   borderRadius: BorderRadius.circular(20)),
                 child: Text(e['status'] as String,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                         color: isHigh ? Colors.orange.shade800 : AppColors.c6)),
               ),
             ]),
           );
         }),
-        const SizedBox(height: 16),
-        SizedBox(width: double.infinity,
+
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
           child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.c6, foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.c6,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 3),
             onPressed: () {},
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Nouvelle mesure', style: TextStyle(fontWeight: FontWeight.w700)),
+            icon: const Icon(Icons.add_rounded, size: 24),
+            label: const Text('Nouvelle mesure',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           )),
       ]),
     );
@@ -199,163 +251,474 @@ class _GlycemiePage extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════
-// PAGE 3 : Repas
+// PAGE 3 : Repas + Calendrier
 // ══════════════════════════════════════════
-class _RepasPage extends StatelessWidget {
+class _RepasPage extends StatefulWidget {
   const _RepasPage();
   @override
-  Widget build(BuildContext context) {
-    final meals = [
-      {'title': 'Petit-déjeuner', 'icon': Icons.free_breakfast_rounded, 'calories': '320 kcal', 'time': '07:30', 'plat': 'Msemen',   'glucides': '24.6 g'},
-      {'title': 'Déjeuner',       'icon': Icons.lunch_dining_rounded,    'calories': '580 kcal', 'time': '12:30', 'plat': 'Couscous', 'glucides': '46.4 g'},
-      {'title': 'Goûter',         'icon': Icons.cookie_rounded,          'calories': '150 kcal', 'time': '16:00', 'plat': 'Sellou',   'glucides': '13.8 g'},
-      {'title': 'Collation',      'icon': Icons.apple_rounded,           'calories': '120 kcal', 'time': '18:00', 'plat': 'Zaalouk', 'glucides': '7.3 g'},
-    ];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          width: double.infinity, padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: AppColors.c6, borderRadius: BorderRadius.circular(16)),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            _CalInfo(label: 'Consommées', value: '1020', unit: 'kcal'),
-            Container(width: 1, height: 40, color: Colors.white30),
-            _CalInfo(label: 'Objectif',   value: '1800', unit: 'kcal'),
-            Container(width: 1, height: 40, color: Colors.white30),
-            _CalInfo(label: 'Restantes',  value: '780',  unit: 'kcal'),
-          ]),
-        ),
-        const SizedBox(height: 24),
-        const Text("Repas d'aujourd'hui",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-        const SizedBox(height: 12),
-        ...meals.map((m) => Container(
-          margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.c3)),
-          child: Row(children: [
-            Container(width: 44, height: 44,
-                decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(10)),
-                child: Icon(m['icon'] as IconData, color: AppColors.c6)),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(m['title'] as String,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-              const SizedBox(height: 2),
-              Row(children: [
-                Text(m['time'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textGrey)),
-                const SizedBox(width: 8),
-                Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.c3, shape: BoxShape.circle)),
-                const SizedBox(width: 8),
-                Text(m['plat'] as String, style: const TextStyle(fontSize: 11, color: AppColors.textGrey, fontStyle: FontStyle.italic)),
-              ]),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(20)),
-                child: Text('🍚 ${m['glucides']} glucides',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-              ),
-            ])),
-            const SizedBox(width: 8),
-            Text(m['calories'] as String,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.c6)),
-          ]),
-        )),
-        const SizedBox(height: 16),
-        SizedBox(width: double.infinity,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.c6, foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            onPressed: () => Navigator.pushNamed(context, '/add-meal'),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Ajouter un repas', style: TextStyle(fontWeight: FontWeight.w700)),
-          )),
-      ]),
-    );
+  State<_RepasPage> createState() => _RepasPageState();
+}
+
+class _RepasPageState extends State<_RepasPage> {
+  final _store = MealStore.instance;
+  late DateTime _selectedDay;
+  late DateTime _focusedMonth;
+  late ScrollController _calScroll;
+
+  static const int _daysRange = 30; // 30 jours dans le calendrier
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay   = _today;
+    _focusedMonth  = _today;
+    _calScroll     = ScrollController();
+    // scroll vers aujourd'hui après le build
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
   }
-}
 
-class _CalInfo extends StatelessWidget {
-  final String label, value, unit;
-  const _CalInfo({required this.label, required this.value, required this.unit});
   @override
-  Widget build(BuildContext context) => Column(children: [
-    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-    const SizedBox(height: 4),
-    Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
-    Text(unit,  style: const TextStyle(color: Colors.white60, fontSize: 10)),
-  ]);
-}
+  void dispose() {
+    _calScroll.dispose();
+    super.dispose();
+  }
 
-// ── Water Card (stateful pour interaction)
-class _WaterCard extends StatefulWidget {
-  @override
-  State<_WaterCard> createState() => _WaterCardState();
-}
-class _WaterCardState extends State<_WaterCard> {
-  int _glasses = 3; // valeur initiale démo
-  static const int _max = 8;
+  DateTime get _today {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  void _scrollToToday() {
+    final idx = _daysRange ~/ 2; // aujourd'hui est au milieu
+    final offset = idx * 72.0 - 100;
+    if (_calScroll.hasClients) {
+      _calScroll.animateTo(offset.clamp(0, double.infinity),
+          duration: const Duration(milliseconds: 400), curve: Curves.easeOut);
+    }
+  }
+
+  Future<void> _goAddMeal() async {
+    final added = await Navigator.pushNamed(context, '/add-meal');
+    if (added == true && mounted) setState(() {});
+  }
+
+  String _dayName(DateTime d) {
+    const names = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    return names[d.weekday - 1];
+  }
+
+  String _monthLabel(DateTime d) {
+    const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    return '${months[d.month - 1]} ${d.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final ml = _glasses * 250;
-    final pct = _glasses / _max;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.c3, width: 1.5),
-        boxShadow: [BoxShadow(color: AppColors.c3.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))],
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(color: const Color(0xFFE3F2FD), borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.water_drop_rounded, color: Color(0xFF1565C0), size: 22),
+    final selKey  = MealStore.keyOf(_selectedDay);
+    final meals   = _store.forDate(selKey);
+    final cal     = _store.caloriesForDate(selKey);
+    const objectif = 1800;
+    final restantes = (objectif - cal).clamp(0, objectif);
+    final isToday   = _selectedDay == _today;
+
+    return Column(children: [
+      // ════════════════════════════
+      // CALENDRIER HORIZONTAL
+      // ════════════════════════════
+      Container(
+        color: AppColors.c6,
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(children: [
+          // Mois label
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(_monthLabel(_selectedDay),
+                  style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
+              if (!isToday)
+                GestureDetector(
+                  onTap: () => setState(() { _selectedDay = _today; _scrollToToday(); }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20)),
+                    child: const Text("Aujourd'hui",
+                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+            ]),
           ),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Eau', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-            Text('$_glasses/$_max verres — $ml ml',
-                style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
-          ])),
-          Text(
-            _glasses >= _max ? '🎉 Objectif!' : '${_max - _glasses} restants',
-            style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600,
-              color: _glasses >= _max ? AppColors.c5 : AppColors.textGrey,
+          // Jours scrollables
+          SizedBox(
+            height: 80,
+            child: ListView.builder(
+              controller: _calScroll,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: _daysRange,
+              itemBuilder: (_, i) {
+                final day = _today.subtract(Duration(days: _daysRange ~/ 2 - i));
+                final key = MealStore.keyOf(day);
+                final hasMeals = _store.forDate(key).isNotEmpty;
+                final isSelected = day == _selectedDay;
+                final isTodayDay = day == _today;
+
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedDay = day),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 60,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isTodayDay && !isSelected
+                            ? Colors.white.withOpacity(0.6)
+                            : Colors.transparent,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(_dayName(day),
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? AppColors.c6 : Colors.white70)),
+                      const SizedBox(height: 4),
+                      Text('${day.day}',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: isSelected ? AppColors.c6 : Colors.white)),
+                      const SizedBox(height: 4),
+                      // Point si repas enregistrés
+                      Container(
+                        width: 6, height: 6,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: hasMeals
+                              ? (isSelected ? AppColors.c5 : Colors.white)
+                              : Colors.transparent,
+                        ),
+                      ),
+                    ]),
+                  ),
+                );
+              },
             ),
           ),
         ]),
-        const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: pct, minHeight: 7,
-            backgroundColor: const Color(0xFFE3F2FD),
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
-          ),
+      ),
+
+      // ════════════════════════════
+      // CONTENU DU JOUR SÉLECTIONNÉ
+      // ════════════════════════════
+      Expanded(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+            // Résumé calories du jour
+            Container(
+              width: double.infinity, padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                  color: AppColors.c6,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [BoxShadow(color: AppColors.c6.withOpacity(0.25), blurRadius: 10, offset: const Offset(0, 4))]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                _CalInfo(label: 'Consommées', value: '$cal',       unit: 'kcal'),
+                Container(width: 1, height: 44, color: Colors.white30),
+                _CalInfo(label: 'Objectif',   value: '$objectif',  unit: 'kcal'),
+                Container(width: 1, height: 44, color: Colors.white30),
+                _CalInfo(label: 'Restantes',  value: '$restantes', unit: 'kcal'),
+              ]),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Titre du jour
+            Row(children: [
+              Text(
+                isToday ? "🍽️ Aujourd'hui" : '🍽️ ${_dayLabel(_selectedDay)}',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark),
+              ),
+              const SizedBox(width: 10),
+              if (meals.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(20)),
+                  child: Text('${meals.length} repas',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                ),
+            ]),
+
+            const SizedBox(height: 14),
+
+            // Liste repas ou état vide
+            if (meals.isEmpty)
+              _EmptyMeals(isToday: isToday)
+            else
+              ...meals.map((m) => _MealCard(meal: m, onRefresh: () => setState(() {}))),
+
+            const SizedBox(height: 20),
+
+            // ── Section Eau
+            const Text('💧 Hydratation',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            const SizedBox(height: 12),
+            _WaterSection(dateKey: selKey),
+
+            const SizedBox(height: 16),
+
+            // Bouton ajouter (seulement pour aujourd'hui)
+            if (isToday)
+              SizedBox(
+                width: double.infinity, height: 56,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.c6,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 3),
+                  onPressed: _goAddMeal,
+                  icon: const Icon(Icons.add_rounded, size: 24),
+                  label: const Text('Ajouter un repas',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                )),
+          ]),
         ),
+      ),
+    ]);
+  }
+
+  String _dayLabel(DateTime d) {
+    const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
+  }
+}
+
+class _MealCard extends StatelessWidget {
+  final MealEntry meal;
+  final VoidCallback onRefresh;
+  const _MealCard({required this.meal, required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey(meal.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+            color: Colors.red.shade400, borderRadius: BorderRadius.circular(16)),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+          SizedBox(height: 4),
+          Text('Supprimer', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+        ]),
+      ),
+      confirmDismiss: (_) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            title: const Text('Supprimer ce repas ?',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            content: Text('${meal.platEmoji} ${meal.platName} — ${meal.type}',
+                style: const TextStyle(fontSize: 15, color: AppColors.textGrey)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annuler',
+                    style: TextStyle(color: AppColors.c5, fontWeight: FontWeight.w700))),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red, foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Supprimer', style: TextStyle(fontWeight: FontWeight.w700))),
+            ],
+          ),
+        ) ?? false;
+      },
+      onDismissed: (_) async {
+        await MealStore.instance.delete(meal.id);
+        onRefresh();
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.c3, width: 1.5),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+        ),
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 10),
+            child: Row(children: [
+              Container(width: 52, height: 52,
+                  decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(14)),
+                  child: Center(child: Text(meal.platEmoji, style: const TextStyle(fontSize: 26)))),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(meal.type,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                const SizedBox(height: 3),
+                Row(children: [
+                  Text(meal.timeLabel,
+                      style: const TextStyle(fontSize: 13, color: AppColors.textGrey, fontWeight: FontWeight.w500)),
+                  const SizedBox(width: 6),
+                  Container(width: 4, height: 4,
+                      decoration: const BoxDecoration(color: AppColors.c3, shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                  Flexible(child: Text(meal.platName,
+                      style: const TextStyle(fontSize: 13, color: AppColors.textGrey, fontStyle: FontStyle.italic),
+                      overflow: TextOverflow.ellipsis)),
+                ]),
+                const SizedBox(height: 5),
+                Row(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                    decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(20)),
+                    child: Text('🍚 ${meal.glucides.toStringAsFixed(1)} g glucides',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('${meal.calories} kcal',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.c6)),
+                ]),
+              ])),
+            ]),
+          ),
+          // Actions bar
+          Container(
+            decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.c2, width: 1))),
+            child: Row(children: [
+              // ✏️ Modifier
+              Expanded(child: TextButton.icon(
+                onPressed: () async {
+                  final edited = await Navigator.push<bool>(context,
+                      MaterialPageRoute(builder: (_) => EditMealScreen(meal: meal)));
+                  if (edited == true) onRefresh();
+                },
+                icon: const Icon(Icons.edit_rounded, size: 16, color: AppColors.c5),
+                label: const Text('Modifier',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.c5)),
+              )),
+              Container(width: 1, height: 36, color: AppColors.c2),
+              // 🗑️ Supprimer
+              Expanded(child: TextButton.icon(
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      title: const Text('Supprimer ce repas ?',
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                      content: Text('${meal.platEmoji} ${meal.platName}',
+                          style: const TextStyle(fontSize: 15, color: AppColors.textGrey)),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Annuler',
+                                style: TextStyle(color: AppColors.c5, fontWeight: FontWeight.w700))),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red, foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Supprimer', style: TextStyle(fontWeight: FontWeight.w700))),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await MealStore.instance.delete(meal.id);
+                    onRefresh();
+                  }
+                },
+                icon: const Icon(Icons.delete_rounded, size: 16, color: Colors.red),
+                label: const Text('Supprimer',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.red)),
+              )),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+// ── Water Card pour la page Repas
+class _WaterSection extends StatefulWidget {
+  final String dateKey;
+  const _WaterSection({required this.dateKey});
+  @override
+  State<_WaterSection> createState() => _WaterSectionState();
+}
+class _WaterSectionState extends State<_WaterSection> {
+  static const int _max = 8;
+
+  int get _glasses => MealStore.instance.glassesForDate(widget.dateKey);
+
+  @override
+  Widget build(BuildContext context) {
+    final glasses = _glasses;
+    final ml  = glasses * 250;
+    final pct = glasses / _max;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBBDEFB), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(width: 46, height: 46,
+              decoration: BoxDecoration(color: const Color(0xFFE3F2FD), borderRadius: BorderRadius.circular(12)),
+              child: const Icon(Icons.water_drop_rounded, color: Color(0xFF1565C0), size: 24)),
+          const SizedBox(width: 14),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Eau', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            Text('$glasses/$_max verres — $ml ml',
+                style: const TextStyle(fontSize: 13, color: AppColors.textGrey)),
+          ])),
+          Text(
+            glasses >= _max ? '🎉 Objectif!' : '${_max - glasses} restants',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                color: glasses >= _max ? AppColors.c5 : AppColors.textGrey),
+          ),
+        ]),
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ClipRRect(borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(value: pct, minHeight: 8,
+              backgroundColor: const Color(0xFFE3F2FD),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)))),
+        const SizedBox(height: 12),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: List.generate(_max, (i) {
-            final filled = i < _glasses;
+            final filled = i < glasses;
             return GestureDetector(
-              onTap: () => setState(() => _glasses = (i + 1 == _glasses) ? 0 : i + 1),
+              onTap: () async {
+                final newVal = (i + 1 == glasses) ? 0 : i + 1;
+                await MealStore.instance.setWater(widget.dateKey, newVal);
+                setState(() {});
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
-                width: 32, height: 38,
+                width: 34, height: 40,
                 decoration: BoxDecoration(
                   color: filled ? const Color(0xFFBBDEFB) : const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: filled ? const Color(0xFF1976D2) : AppColors.c3, width: 1.5),
+                  border: Border.all(
+                      color: filled ? const Color(0xFF1976D2) : AppColors.c3, width: 1.5),
                 ),
-                child: Center(child: Text('💧', style: TextStyle(fontSize: filled ? 16 : 12))),
+                child: Center(child: Text('💧', style: TextStyle(fontSize: filled ? 17 : 13))),
               ),
             );
           }),
@@ -363,6 +726,39 @@ class _WaterCardState extends State<_WaterCard> {
       ]),
     );
   }
+}
+
+class _EmptyMeals extends StatelessWidget {
+  final bool isToday;
+  const _EmptyMeals({this.isToday = false});
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(vertical: 48),
+    child: Column(children: [
+      Text(isToday ? '🍽️' : '📭', style: const TextStyle(fontSize: 52)),
+      const SizedBox(height: 14),
+      Text(
+        isToday ? 'Aucun repas enregistré aujourd\'hui' : 'Aucun repas ce jour-là',
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+      const SizedBox(height: 6),
+      Text(
+        isToday ? "Appuyez sur 'Ajouter un repas'" : 'Sélectionnez un autre jour',
+        style: const TextStyle(fontSize: 14, color: AppColors.textGrey)),
+    ]),
+  );
+}
+
+class _CalInfo extends StatelessWidget {
+  final String label, value, unit;
+  const _CalInfo({required this.label, required this.value, required this.unit});
+  @override
+  Widget build(BuildContext context) => Column(children: [
+    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500)),
+    const SizedBox(height: 6),
+    Text(value, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+    Text(unit,  style: const TextStyle(color: Colors.white60, fontSize: 11)),
+  ]);
 }
 
 // ══════════════════════════════════════════
@@ -378,8 +774,6 @@ class _ProfilPage extends StatefulWidget {
 class _ProfilPageState extends State<_ProfilPage> {
   final _session = UserSession();
   bool _pickingImage = false;
-
-  // Stored XFile from image_picker — works on both web & mobile
   XFile? _pickedFile;
 
   Future<void> _pickPhoto() async {
@@ -393,15 +787,15 @@ class _ProfilPageState extends State<_ProfilPage> {
           Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 16),
               decoration: BoxDecoration(color: AppColors.c3, borderRadius: BorderRadius.circular(2))),
           const Text('Photo de profil',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
           const SizedBox(height: 16),
           if (!kIsWeb) _PhotoOption(
-            icon: Icons.camera_alt_rounded, label: 'Prendre une photo',
-            onTap: () => Navigator.pop(context, ImageSource.camera)),
+              icon: Icons.camera_alt_rounded, label: 'Prendre une photo',
+              onTap: () => Navigator.pop(context, ImageSource.camera)),
           if (!kIsWeb) const Divider(height: 1, color: AppColors.c2),
           _PhotoOption(
-            icon: Icons.photo_library_rounded, label: 'Choisir depuis la galerie',
-            onTap: () => Navigator.pop(context, ImageSource.gallery)),
+              icon: Icons.photo_library_rounded, label: 'Choisir depuis la galerie',
+              onTap: () => Navigator.pop(context, ImageSource.gallery)),
           if (_pickedFile != null) ...[
             const Divider(height: 1, color: AppColors.c2),
             _PhotoOption(icon: Icons.delete_outline_rounded, label: 'Supprimer la photo',
@@ -413,8 +807,6 @@ class _ProfilPageState extends State<_ProfilPage> {
     );
 
     if (!mounted) return;
-
-    // Delete
     if (source == null && _pickedFile != null) {
       setState(() => _pickedFile = null);
       await _session.save(photoPath: '');
@@ -425,8 +817,7 @@ class _ProfilPageState extends State<_ProfilPage> {
 
     setState(() => _pickingImage = true);
     try {
-      final picked = await ImagePicker().pickImage(
-          source: source, imageQuality: 85, maxWidth: 600);
+      final picked = await ImagePicker().pickImage(source: source, imageQuality: 85, maxWidth: 600);
       if (picked != null && mounted) {
         setState(() => _pickedFile = picked);
         await _session.save(photoPath: picked.path);
@@ -442,7 +833,7 @@ class _ProfilPageState extends State<_ProfilPage> {
     final email = _session.email.isNotEmpty ? _session.email : 'email@exemple.com';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 90),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
       child: Column(children: [
 
         // ── Hero card
@@ -452,16 +843,14 @@ class _ProfilPageState extends State<_ProfilPage> {
             gradient: const LinearGradient(
                 colors: [AppColors.c6, AppColors.c5],
                 begin: Alignment.topLeft, end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: AppColors.c6.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 6))],
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [BoxShadow(color: AppColors.c6.withOpacity(0.35), blurRadius: 18, offset: const Offset(0, 8))],
           ),
           child: Column(children: [
-            const SizedBox(height: 28),
-
-            // Avatar + edit button
+            const SizedBox(height: 32),
             Stack(alignment: Alignment.bottomRight, children: [
               Container(
-                width: 100, height: 100,
+                width: 110, height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 3),
@@ -470,49 +859,48 @@ class _ProfilPageState extends State<_ProfilPage> {
                 ),
                 child: ClipOval(
                   child: _pickedFile != null
-                      ? _XFileImage(file: _pickedFile!, size: 100)
+                      ? _XFileImage(file: _pickedFile!, size: 110)
                       : _AvatarInitials(name: name),
                 ),
               ),
               GestureDetector(
                 onTap: _pickingImage ? null : _pickPhoto,
                 child: Container(
-                  width: 32, height: 32,
+                  width: 36, height: 36,
                   decoration: BoxDecoration(
                     color: Colors.white, shape: BoxShape.circle,
                     boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 6)]),
                   child: _pickingImage
-                      ? const Padding(padding: EdgeInsets.all(6),
+                      ? const Padding(padding: EdgeInsets.all(7),
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.c6))
-                      : const Icon(Icons.camera_alt_rounded, size: 17, color: AppColors.c6),
+                      : const Icon(Icons.camera_alt_rounded, size: 19, color: AppColors.c6),
                 ),
               ),
             ]),
-
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Text(name,
-                style: const TextStyle(color: Colors.white, fontSize: 20,
+                style: const TextStyle(color: Colors.white, fontSize: 22,
                     fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-            const SizedBox(height: 4),
-            Text(email, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
+            Text(email, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
               decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
               child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.verified_rounded, color: Colors.white, size: 14),
-                SizedBox(width: 5),
+                Icon(Icons.verified_rounded, color: Colors.white, size: 16),
+                SizedBox(width: 6),
                 Text('Type 2 — Suivi actif',
-                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
               ]),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+                  color: Colors.white.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
               child: Row(children: [
                 _ProfileStat(value: '12', label: 'Semaines'),
                 _HDivider(),
@@ -521,13 +909,13 @@ class _ProfilPageState extends State<_ProfilPage> {
                 _ProfileStat(value: '5.4', label: 'Moy. mmol'),
               ]),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
           ]),
         ),
 
-        const SizedBox(height: 24),
-        _SectionTitle(label: 'Mon compte'),
-        const SizedBox(height: 10),
+        const SizedBox(height: 28),
+        _SectionTitle(label: 'MON COMPTE'),
+        const SizedBox(height: 12),
         _ProfilItem(icon: Icons.person_outline_rounded, title: 'Informations personnelles',
             subtitle: name, onTap: () {}),
         _ProfilItem(icon: Icons.monitor_heart_outlined, title: 'Paramètres de santé',
@@ -537,9 +925,9 @@ class _ProfilPageState extends State<_ProfilPage> {
             subtitle: 'Gérer vos proches',
             onTap: () => Navigator.pushNamed(context, '/add-companion')),
 
-        const SizedBox(height: 16),
-        _SectionTitle(label: 'Préférences'),
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
+        _SectionTitle(label: 'PRÉFÉRENCES'),
+        const SizedBox(height: 12),
         _ProfilItem(icon: Icons.notifications_outlined, title: 'Notifications',
             subtitle: 'Rappels, alertes glycémie', onTap: () {}),
         _ProfilItem(icon: Icons.language_outlined, title: 'Langue',
@@ -547,24 +935,26 @@ class _ProfilPageState extends State<_ProfilPage> {
         _ProfilItem(icon: Icons.lock_outline_rounded, title: 'Sécurité',
             subtitle: 'Mot de passe, 2FA', onTap: () {}),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         GestureDetector(
           onTap: () async {
             await _session.clear();
             if (context.mounted) Navigator.pushReplacementNamed(context, '/welcome');
           },
           child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(14),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.red.shade100)),
             child: Row(children: [
-              Container(width: 42, height: 42,
-                  decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.logout_rounded, color: Colors.red, size: 20)),
-              const SizedBox(width: 14),
+              Container(width: 48, height: 48,
+                  decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.logout_rounded, color: Colors.red, size: 24)),
+              const SizedBox(width: 16),
               const Expanded(child: Text('Se déconnecter',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.red))),
-              Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Colors.red.shade300),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.red))),
+              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.red.shade300),
             ]),
           ),
         ),
@@ -573,7 +963,7 @@ class _ProfilPageState extends State<_ProfilPage> {
   }
 }
 
-// ── XFile image — works on BOTH web and mobile via readAsBytes
+// ── XFile image
 class _XFileImage extends StatefulWidget {
   final XFile file;
   final double size;
@@ -581,25 +971,17 @@ class _XFileImage extends StatefulWidget {
   @override
   State<_XFileImage> createState() => _XFileImageState();
 }
-
 class _XFileImageState extends State<_XFileImage> {
   late Future<Uint8List> _bytesFuture;
   @override
-  void initState() {
-    super.initState();
-    _bytesFuture = widget.file.readAsBytes();
-  }
+  void initState() { super.initState(); _bytesFuture = widget.file.readAsBytes(); }
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Uint8List>(
       future: _bytesFuture,
       builder: (ctx, snap) {
-        if (snap.hasData) {
-          return Image.memory(snap.data!, fit: BoxFit.cover,
-              width: widget.size, height: widget.size);
-        }
-        return Container(color: AppColors.c4,
-            child: const Icon(Icons.person_rounded, color: Colors.white, size: 36));
+        if (snap.hasData) return Image.memory(snap.data!, fit: BoxFit.cover, width: widget.size, height: widget.size);
+        return Container(color: AppColors.c4, child: const Icon(Icons.person_rounded, color: Colors.white, size: 40));
       },
     );
   }
@@ -618,7 +1000,7 @@ class _AvatarInitials extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     color: AppColors.c4,
     child: Center(child: Text(_initials,
-        style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w800))),
+        style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w800))),
   );
 }
 
@@ -627,16 +1009,15 @@ class _ProfileStat extends StatelessWidget {
   const _ProfileStat({required this.value, required this.label});
   @override
   Widget build(BuildContext context) => Expanded(child: Column(children: [
-    Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 2),
-    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+    Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+    const SizedBox(height: 3),
+    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
   ]));
 }
 
 class _HDivider extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Container(width: 1, height: 32, color: Colors.white24);
+  Widget build(BuildContext context) => Container(width: 1, height: 36, color: Colors.white24);
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -646,8 +1027,8 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) => Align(
     alignment: Alignment.centerLeft,
     child: Text(label,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-            color: AppColors.textGrey, letterSpacing: 0.5)),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+            color: AppColors.textGrey, letterSpacing: 1.2)),
   );
 }
 
@@ -662,26 +1043,26 @@ class _ProfilItem extends StatelessWidget {
     onTap: onTap,
     child: Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(14),
+        color: Colors.white, borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.c2),
         boxShadow: [BoxShadow(color: AppColors.c2.withOpacity(0.4), blurRadius: 4, offset: const Offset(0, 2))],
       ),
       child: Row(children: [
-        Container(width: 42, height: 42,
-            decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: AppColors.c6, size: 20)),
-        const SizedBox(width: 14),
+        Container(width: 48, height: 48,
+            decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: AppColors.c6, size: 24)),
+        const SizedBox(width: 16),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+          Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
           if (subtitle != null) ...[
-            const SizedBox(height: 1),
-            Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
+            const SizedBox(height: 2),
+            Text(subtitle!, style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
                 maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ])),
-        const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: AppColors.c4),
+        const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.c4),
       ]),
     ),
   );
@@ -699,34 +1080,34 @@ class _PhotoOption extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(children: [
-          Icon(icon, color: c, size: 22),
+          Icon(icon, color: c, size: 24),
           const SizedBox(width: 16),
-          Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: c)),
+          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: c)),
         ]),
       ),
     );
   }
 }
 
-// Shared widgets
+// ── Shared widgets
 class _StatCard extends StatelessWidget {
   final String label, value, unit;
   final Color color;
   const _StatCard({required this.label, required this.value, required this.unit, required this.color});
   @override
   Widget build(BuildContext context) => Expanded(child: Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-      const SizedBox(height: 4),
+      Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+      const SizedBox(height: 6),
       Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
-        const SizedBox(width: 4),
-        Padding(padding: const EdgeInsets.only(bottom: 2),
-            child: Text(unit, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+        Text(value, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
+        const SizedBox(width: 5),
+        Padding(padding: const EdgeInsets.only(bottom: 3),
+            child: Text(unit, style: const TextStyle(color: Colors.white70, fontSize: 12))),
       ]),
     ]),
   ));
@@ -741,20 +1122,22 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.c3, width: 1)),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.c3, width: 1.5),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))]),
       child: Row(children: [
-        Container(width: 44, height: 44,
-            decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: AppColors.c6, size: 22)),
-        const SizedBox(width: 14),
+        Container(width: 52, height: 52,
+            decoration: BoxDecoration(color: AppColors.c2, borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, color: AppColors.c6, size: 26)),
+        const SizedBox(width: 16),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-          const SizedBox(height: 2),
-          Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+          Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+          const SizedBox(height: 3),
+          Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.textGrey)),
         ])),
-        const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.c4),
+        const Icon(Icons.arrow_forward_ios_rounded, size: 15, color: AppColors.c4),
       ]),
     ),
   );
