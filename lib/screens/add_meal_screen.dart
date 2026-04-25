@@ -423,8 +423,6 @@ class _MealTypeSelector extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────
-// Plat selector (image grid)
-// ─────────────────────────────────────────
 // Plat selector avec recherche
 // ─────────────────────────────────────────
 class _PlatSelector extends StatefulWidget {
@@ -448,9 +446,12 @@ class _PlatSelectorState extends State<_PlatSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _platsMarocains
-        .where((p) => p.name.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
+    // ✅ FIX : liste vide tant que l'utilisateur n'a pas tapé
+    final filtered = _query.trim().isEmpty
+        ? <_Plat>[]
+        : _platsMarocains
+            .where((p) => p.name.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
 
     return Column(
       children: [
@@ -491,114 +492,165 @@ class _PlatSelectorState extends State<_PlatSelector> {
         ),
         const SizedBox(height: 12),
 
-        // ── Liste filtrée
-        if (filtered.isEmpty)
+        // ── Affichage conditionnel
+        if (_query.trim().isEmpty)
+          // ✅ Message initial : aucune image affichée
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Column(
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.c2,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.search_rounded,
+                      color: AppColors.c5, size: 36),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Recherchez un plat pour voir les résultats',
+                  style: TextStyle(
+                      color: AppColors.textGrey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Ex: Couscous, Harira, Tajine...',
+                  style: TextStyle(
+                      color: AppColors.textGrey,
+                      fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        else if (filtered.isEmpty)
+          // ✅ Aucun résultat trouvé
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Column(
               children: [
-                const Icon(Icons.search_off_rounded, color: AppColors.textGrey, size: 40),
+                const Icon(Icons.search_off_rounded,
+                    color: AppColors.textGrey, size: 40),
                 const SizedBox(height: 8),
-                Text('Aucun plat trouvé pour "$_query"',
-                    style: const TextStyle(color: AppColors.textGrey, fontSize: 14)),
+                Text(
+                  'Aucun plat trouvé pour "$_query"',
+                  style: const TextStyle(
+                      color: AppColors.textGrey, fontSize: 14),
+                ),
               ],
             ),
           )
         else
+          // ✅ Liste des plats filtrés avec images
           ...filtered.map((p) {
             final active = widget.selected?.name == p.name;
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(
-              onTap: () => widget.onSelect(p),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: active ? AppColors.c6 : Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: active ? AppColors.c6 : AppColors.c3, width: active ? 2.5 : 1.5),
-                  boxShadow: active
-                      ? [
-                          BoxShadow(
-                              color: AppColors.c6.withOpacity(0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4))
-                        ]
-                      : [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2))
-                        ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Image du plat
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: Stack(
-                        children: [
-                          Image.asset(
-                            p.imageUrl,
-                            height: 180,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                onTap: () => widget.onSelect(p),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: active ? AppColors.c6 : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: active ? AppColors.c6 : AppColors.c3,
+                        width: active ? 2.5 : 1.5),
+                    boxShadow: active
+                        ? [
+                            BoxShadow(
+                                color: AppColors.c6.withOpacity(0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4))
+                          ]
+                        : [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2))
+                          ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Image du plat
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12)),
+                        child: Stack(
+                          children: [
+                            Image.asset(
+                              p.imageUrl,
                               height: 180,
-                              color: AppColors.c2,
-                              child: Center(
-                                child: Text(p.emoji,
-                                    style: const TextStyle(fontSize: 36)),
-                              ),
-                            ),
-                          ),
-                          if (active)
-                            Positioned(
-                              top: 6,
-                              right: 6,
-                              child: Container(
-                                width: 22,
-                                height: 22,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 180,
+                                color: AppColors.c2,
+                                child: Center(
+                                  child: Text(p.emoji,
+                                      style:
+                                          const TextStyle(fontSize: 36)),
                                 ),
-                                child: const Icon(Icons.check_circle_rounded,
-                                    color: AppColors.c6, size: 22),
                               ),
                             ),
-                        ],
+                            if (active)
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: Container(
+                                  width: 22,
+                                  height: 22,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: AppColors.c6,
+                                      size: 22),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                    // Infos du plat
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(p.name,
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: active ? Colors.white : AppColors.textDark)),
-                          Text('${p.glucidesPer100g} g/100g',
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: active
-                                      ? Colors.white.withOpacity(0.75)
-                                      : AppColors.textGrey)),
-                        ],
+                      // Infos du plat
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(p.name,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: active
+                                        ? Colors.white
+                                        : AppColors.textDark)),
+                            Text('${p.glucidesPer100g} g/100g',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: active
+                                        ? Colors.white.withOpacity(0.75)
+                                        : AppColors.textGrey)),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
             );
           }),
       ],
