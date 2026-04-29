@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_colors.dart';
 import '../widgets/common_widgets.dart';
 import '../user_session.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -22,40 +23,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _loading        = false;
   String? _error;
 
-  void _signUp() async {
-    setState(() { _error = null; });
+  
+void _signUp() async {
+  setState(() => _error = null);
 
-    if (!_agreeTerms) {
-      setState(() => _error = "Veuillez accepter les conditions d'utilisation.");
-      return;
-    }
-    if (_passCtrl.text != _confirmCtrl.text) {
-      setState(() => _error = 'Les mots de passe ne correspondent pas.');
-      return;
-    }
-    if (_nomCtrl.text.isEmpty || _prenomCtrl.text.isEmpty ||
-        _emailCtrl.text.isEmpty || _passCtrl.text.isEmpty) {
-      setState(() => _error = 'Veuillez remplir tous les champs.');
-      return;
-    }
+  if (!_agreeTerms) {
+    setState(() => _error = "Veuillez accepter les conditions d'utilisation.");
+    return;
+  }
 
-    setState(() => _loading = true);
-    // Save user to session
+  if (_passCtrl.text != _confirmCtrl.text) {
+    setState(() => _error = 'Les mots de passe ne correspondent pas.');
+    return;
+  }
+
+  setState(() => _loading = true);
+
+  try {
+   final userCredential =
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+  email: _emailCtrl.text.trim(),
+  password: _passCtrl.text.trim(),
+);
+    
+    await userCredential.user!.sendEmailVerification();
+    
     await UserSession().save(
       nom: _nomCtrl.text.trim(),
       prenom: _prenomCtrl.text.trim(),
       email: _emailCtrl.text.trim(),
     );
-    await Future.delayed(const Duration(milliseconds: 800));
+
     if (!mounted) return;
+
     setState(() => _loading = false);
 
-    if (_role == 'diabetique') {
-      Navigator.pushNamed(context, '/health-info');
-    } else {
-      Navigator.pushNamed(context, '/companion-info');
-    }
+    // 🔥 IMPORTANT: go to verify screen
+    Navigator.pushReplacementNamed(context, '/verify');
+
+  } on FirebaseAuthException catch (e) {
+    setState(() {
+      _loading = false;
+      _error = e.message;
+    });
   }
+}
 
   @override
   void dispose() {

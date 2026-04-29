@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   @override
@@ -13,20 +13,46 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scale;
 
   @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1200));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _scale = Tween<double>(begin: 0.82, end: 1.0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
-    _ctrl.forward();
-    // Diagramme: Initial → Ouvrir application → Welcome
-    Future.delayed(const Duration(milliseconds: 2600), () {
-      if (mounted) Navigator.pushReplacementNamed(context, '/welcome');
-    });
+void initState() {
+  super.initState();
+
+  _ctrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1200));
+
+  _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
+
+  _scale = Tween<double>(begin: 0.82, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+
+  _ctrl.forward();
+
+  _checkAuth();
+}
+void _checkAuth() async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  await Future.delayed(const Duration(milliseconds: 2600));
+
+  if (!mounted) return;
+
+  if (user == null) {
+    // ❌ not logged in
+    Navigator.pushReplacementNamed(context, '/welcome');
+    return;
   }
 
+  await user.reload();
+
+  final refreshedUser = FirebaseAuth.instance.currentUser;
+
+  if (refreshedUser != null && refreshedUser.emailVerified) {
+    // 🔐 verified user
+    Navigator.pushReplacementNamed(context, '/dashboard');
+  } else {
+    // 🟡 logged but not verified
+    Navigator.pushReplacementNamed(context, '/verify');
+  }
+}
   @override
   void dispose() { _ctrl.dispose(); super.dispose(); }
 

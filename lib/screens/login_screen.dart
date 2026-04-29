@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_colors.dart';
 import '../widgets/common_widgets.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
   @override
@@ -16,19 +16,55 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   void _login() async {
-    setState(() { _loading = true; _error = null; });
-    await Future.delayed(const Duration(milliseconds: 1200));
+  setState(() {
+    _loading = true;
+    _error = null;
+  });
 
-    if (!mounted) return;
+  if (_emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
+    setState(() {
+      _loading = false;
+      _error = 'Veuillez remplir tous les champs.';
+    });
+    return;
+  }
 
-    if (_emailCtrl.text.isEmpty || _passwordCtrl.text.isEmpty) {
-      setState(() { _loading = false; _error = 'Veuillez remplir tous les champs.'; });
+  try {
+    final userCredential =
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: _emailCtrl.text.trim(),
+      password: _passwordCtrl.text.trim(),
+    );
+
+    final user = userCredential.user;
+
+    if (user == null) {
+      setState(() {
+        _loading = false;
+        _error = "Erreur de connexion.";
+      });
       return;
     }
+if (!mounted) return;
 
-    setState(() => _loading = false);
-    Navigator.pushReplacementNamed(context, '/dashboard');
+setState(() => _loading = false);
+
+Navigator.pushReplacementNamed(context, '/dashboard');
+    
+  } on FirebaseAuthException catch (e) {
+    setState(() {
+      _loading = false;
+
+      if (e.code == 'user-not-found') {
+        _error = "Aucun utilisateur trouvé.";
+      } else if (e.code == 'wrong-password') {
+        _error = "Mot de passe incorrect.";
+      } else {
+        _error = e.message;
+      }
+    });
   }
+}
 
   @override
   void dispose() { _emailCtrl.dispose(); _passwordCtrl.dispose(); super.dispose(); }
