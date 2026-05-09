@@ -170,7 +170,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ────────────────────────────────────────
   // Pages
   // ────────────────────────────────────────
-  late final List<Widget> _pages = [
+  // Getter (meshi late final) — kytbna mn jdid f kol setState
+  // haka _userName w stats kaydaru update f UI b7al lhaq9
+  List<Widget> get _pages => [
     _HomeTab(
       userName: _userName,
       totalCalories: _totalCaloriesToday,
@@ -188,6 +190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       profileImageBytes: _profileImageBytes,
       onPickImage: _pickProfileImage,
       onSignOut: _signOut,
+      onProfileSaved: _loadUserData,
     ),
   ];
 
@@ -533,6 +536,7 @@ class _ProfileTab extends StatefulWidget {
   final Uint8List? profileImageBytes;
   final VoidCallback onPickImage;
   final VoidCallback onSignOut;
+  final VoidCallback onProfileSaved;
 
   const _ProfileTab({
     required this.userName,
@@ -540,6 +544,7 @@ class _ProfileTab extends StatefulWidget {
     required this.profileImageBytes,
     required this.onPickImage,
     required this.onSignOut,
+    required this.onProfileSaved,
   });
 
   @override
@@ -554,6 +559,15 @@ class _ProfileTabState extends State<_ProfileTab> {
   void initState() {
     super.initState();
     _loadDiabeteType();
+  }
+
+  @override
+  void didUpdateWidget(_ProfileTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // كيتسمى عند كل rebuild — كيحدث diabeteType إلا تبدل
+    if (oldWidget.userName != widget.userName) {
+      _loadDiabeteType();
+    }
   }
 
   Future<void> _loadDiabeteType() async {
@@ -731,7 +745,8 @@ class _ProfileTabState extends State<_ProfileTab> {
             _ProfileMenuItem(
               icon: Icons.person_outline_rounded,
               label: 'Mon profil',
-              onTap: () => Navigator.pushNamed(context, '/profile'),
+              onTap: () => Navigator.pushNamed(context, '/profile')
+                  .then((_) => widget.onProfileSaved()),
             ),
             _ProfileMenuItem(
               icon: Icons.notifications_outlined,
