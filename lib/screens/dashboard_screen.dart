@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_web_libraries_in_flutter
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,8 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../app_colors.dart';
-import 'add_meal_screen.dart';
 import 'nutrition_screen.dart';
+import 'historique_screen.dart';
 
 // ─────────────────────────────────────────
 // Dashboard Screen
@@ -45,17 +44,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _loadTodayStats();
   }
 
-  // ────────────────────────────────────────
-  // Load user info from Firestore
-  // ────────────────────────────────────────
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     setState(() {
       _userEmail = user.email;
-      _userName = user.displayName ?? user.email?.split('@').first ?? 'Utilisateur';
+      _userName =
+          user.displayName ?? user.email?.split('@').first ?? 'Utilisateur';
     });
-
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
@@ -63,28 +59,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .get();
       if (doc.exists && mounted) {
         final data = doc.data()!;
-        setState(() {
-          _userName = data['name'] ?? _userName;
-        });
+        setState(() => _userName = data['name'] ?? _userName);
       }
     } catch (_) {}
   }
 
-  // ────────────────────────────────────────
-  // Load today's meal stats from Firestore
-  // ────────────────────────────────────────
   Future<void> _loadTodayStats() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       setState(() => _loadingStats = false);
       return;
     }
-
     try {
       final now = DateTime.now();
       final startOfDay = DateTime(now.year, now.month, now.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
-
       final snapshot = await FirebaseFirestore.instance
           .collection('meals')
           .where('userId', isEqualTo: user.uid)
@@ -92,16 +81,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
           .where('timestamp', isLessThan: Timestamp.fromDate(endOfDay))
           .get();
-
       int totalCal = 0;
       int totalSugar = 0;
-
       for (final doc in snapshot.docs) {
         final data = doc.data();
         totalCal += (data['calories'] as num?)?.toInt() ?? 0;
         totalSugar += (data['sugar'] as num?)?.toInt() ?? 0;
       }
-
       if (mounted) {
         setState(() {
           _totalCaloriesToday = totalCal;
@@ -115,24 +101,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // ────────────────────────────────────────
-  // Pick profile photo
-  // ────────────────────────────────────────
   Future<void> _pickProfileImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 60,
-      maxWidth: 300,
-    );
+        source: ImageSource.gallery, imageQuality: 60, maxWidth: 300);
     if (picked == null) return;
     final bytes = await picked.readAsBytes();
     setState(() => _profileImageBytes = bytes);
   }
 
-  // ────────────────────────────────────────
-  // Sign out
-  // ────────────────────────────────────────
   Future<void> _signOut() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -156,43 +133,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // ────────────────────────────────────────
-  // Navigate to Add Meal
-  // ────────────────────────────────────────
-  Future<void> _goToAddMeal() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const AddMealScreen()),
-    );
-    _loadTodayStats(); // refresh stats after adding meal
-  }
-
-  // ────────────────────────────────────────
-  // Pages
-  // ────────────────────────────────────────
-  // Getter (meshi late final) — kytbna mn jdid f kol setState
-  // haka _userName w stats kaydaru update f UI b7al lhaq9
   List<Widget> get _pages => [
-    _HomeTab(
-      userName: _userName,
-      totalCalories: _totalCaloriesToday,
-      totalSugar: _totalSugarToday,
-      mealsCount: _mealsCountToday,
-      loading: _loadingStats,
-      onAddMeal: _goToAddMeal,
-      onGoNutrition: () => _navKey.currentState?.setPage(1),
-    ),
-    const NutritionScreen(),
-    _HistoryTab(),
-    _ProfileTab(
-      userName: _userName,
-      userEmail: _userEmail,
-      profileImageBytes: _profileImageBytes,
-      onPickImage: _pickProfileImage,
-      onSignOut: _signOut,
-      onProfileSaved: _loadUserData,
-    ),
-  ];
+        _HomeTab(
+          userName: _userName,
+          totalCalories: _totalCaloriesToday,
+          totalSugar: _totalSugarToday,
+          mealsCount: _mealsCountToday,
+          loading: _loadingStats,
+          onGoNutrition: () => _navKey.currentState?.setPage(1),
+          onGoSport: () => _navKey.currentState?.setPage(2),
+          onGoGlycemie: () => _navKey.currentState?.setPage(3),
+        ),
+        const NutritionScreen(),
+        // Sport screen placeholder (remplacez par votre SportScreen)
+        _PlaceholderScreen(
+          icon: Icons.directions_run_rounded,
+          label: 'Sport',
+          color: Colors.green,
+        ),
+        // Glycémie screen placeholder (remplacez par votre GlycemieScreen)
+        _PlaceholderScreen(
+          icon: Icons.bloodtype_rounded,
+          label: 'Glycémie',
+          color: Colors.red,
+        ),
+        const HistoriqueScreen(),
+        _ProfileTab(
+          userName: _userName,
+          userEmail: _userEmail,
+          profileImageBytes: _profileImageBytes,
+          onPickImage: _pickProfileImage,
+          onSignOut: _signOut,
+          onProfileSaved: _loadUserData,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -211,10 +185,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         buttonBackgroundColor: AppColors.darkMoss,
         animationDuration: const Duration(milliseconds: 300),
         items: const [
-          Icon(Icons.home_rounded, size: 28, color: Colors.white),
-          Icon(Icons.restaurant_menu_rounded, size: 28, color: Colors.white),
-          Icon(Icons.history_rounded, size: 28, color: Colors.white),
-          Icon(Icons.person_rounded, size: 28, color: Colors.white),
+          Icon(Icons.home_rounded, size: 26, color: Colors.white),
+          Icon(Icons.restaurant_menu_rounded, size: 26, color: Colors.white),
+          Icon(Icons.directions_run_rounded, size: 26, color: Colors.white),
+          Icon(Icons.bloodtype_rounded, size: 26, color: Colors.white),
+          Icon(Icons.history_rounded, size: 26, color: Colors.white),
+          Icon(Icons.person_rounded, size: 26, color: Colors.white),
         ],
         onTap: (index) => setState(() => _currentIndex = index),
       ),
@@ -223,16 +199,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 // ─────────────────────────────────────────
-// 🏠 Home Tab
+// 🏠 Home Tab — Menu cards
 // ─────────────────────────────────────────
 class _HomeTab extends StatelessWidget {
   final String userName;
-  final int totalCalories;
-  final int totalSugar;
-  final int mealsCount;
+  final int totalCalories, totalSugar, mealsCount;
   final bool loading;
-  final VoidCallback onAddMeal;
-  final VoidCallback onGoNutrition;
+  final VoidCallback onGoNutrition, onGoSport, onGoGlycemie;
 
   const _HomeTab({
     required this.userName,
@@ -240,8 +213,9 @@ class _HomeTab extends StatelessWidget {
     required this.totalSugar,
     required this.mealsCount,
     required this.loading,
-    required this.onAddMeal,
     required this.onGoNutrition,
+    required this.onGoSport,
+    required this.onGoGlycemie,
   });
 
   @override
@@ -249,279 +223,234 @@ class _HomeTab extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Bonjour 👋',
-                        style: TextStyle(
-                            fontSize: 14, color: AppColors.textGrey)),
-                    Text(userName,
-                        style: const TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppColors.primary.withOpacity(0.15),
-                  child: Text(
-                    userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                    style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // ── Stats Today ──
-            Text('Aujourd\'hui',
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // ── Header ──
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Bonjour 👋',
+                  style: TextStyle(fontSize: 14, color: AppColors.textGrey)),
+              Text(userName,
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold)),
+            ]),
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: AppColors.primary.withOpacity(0.15),
+              child: Text(
+                userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                 style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark)),
-            const SizedBox(height: 12),
-
-            loading
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                : Row(
-                    children: [
-                      Expanded(
-                          child: _StatCard(
-                        icon: Icons.local_fire_department_rounded,
-                        label: 'Calories',
-                        value: '$totalCalories',
-                        unit: 'kcal',
-                        color: Colors.deepOrange,
-                      )),
-                      const SizedBox(width: 12),
-                      Expanded(
-                          child: _StatCard(
-                        icon: Icons.water_drop_rounded,
-                        label: 'Sucre',
-                        value: '$totalSugar',
-                        unit: 'g',
-                        color: Colors.blue,
-                      )),
-                      const SizedBox(width: 12),
-                      Expanded(
-                          child: _StatCard(
-                        icon: Icons.restaurant_rounded,
-                        label: 'Repas',
-                        value: '$mealsCount',
-                        unit: '',
-                        color: Colors.green,
-                      )),
-                    ],
-                  ),
-
-            const SizedBox(height: 28),
-
-            // ── Sugar warning ──
-            if (!loading && totalSugar > 50)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.red.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded,
-                        color: Colors.red.shade600),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Attention : votre consommation de sucre dépasse 50g aujourd\'hui.',
-                        style: TextStyle(
-                            color: Colors.red.shade700, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // ── Quick Actions ──
-            Text('Actions rapides',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDark)),
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _ActionButton(
-                    icon: Icons.add_circle_rounded,
-                    label: 'Ajouter repas',
                     color: AppColors.primary,
-                    onTap: onAddMeal,
-                  ),
-                ),
-                const SizedBox(width: 12),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20),
+              ),
+            ),
+          ]),
+
+          const SizedBox(height: 24),
+
+          // ── Stats Today ──
+          Text("Aujourd'hui",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark)),
+          const SizedBox(height: 12),
+
+          loading
+              ? const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator()))
+              : Row(children: [
+                  Expanded(
+                      child: _StatCard(
+                    icon: Icons.local_fire_department_rounded,
+                    label: 'Calories',
+                    value: '$totalCalories',
+                    unit: 'kcal',
+                    color: Colors.deepOrange,
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: _StatCard(
+                    icon: Icons.water_drop_rounded,
+                    label: 'Sucre',
+                    value: '$totalSugar',
+                    unit: 'g',
+                    color: Colors.blue,
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: _StatCard(
+                    icon: Icons.restaurant_rounded,
+                    label: 'Repas',
+                    value: '$mealsCount',
+                    unit: '',
+                    color: Colors.green,
+                  )),
+                ]),
+
+          const SizedBox(height: 8),
+
+          if (!loading && totalSugar > 50)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.only(bottom: 8, top: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.red.shade600),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: _ActionButton(
-                    icon: Icons.qr_code_scanner_rounded,
-                    label: 'Scanner produit',
-                    color: Colors.teal,
-                    onTap: onGoNutrition,
+                  child: Text(
+                    "Attention : sucre dépasse 50g aujourd'hui.",
+                    style:
+                        TextStyle(color: Colors.red.shade700, fontSize: 13),
                   ),
                 ),
-              ],
+              ]),
             ),
 
-            const SizedBox(height: 28),
+          const SizedBox(height: 20),
 
-            // ── Tips ──
-            _TipBanner(),
-          ],
-        ),
+          // ── Menu Sections ──
+          Text('Accès rapide',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark)),
+          const SizedBox(height: 14),
+
+          // NUTRITION
+          _MenuCard(
+            icon: Icons.restaurant_menu_rounded,
+            emoji: '🍎',
+            title: 'Nutrition',
+            subtitle: 'Agenda repas · Ajouter · Scanner',
+            color: AppColors.primary,
+            gradientEnd: AppColors.darkMoss,
+            onTap: onGoNutrition,
+          ),
+          const SizedBox(height: 12),
+
+          // SPORT
+          _MenuCard(
+            icon: Icons.directions_run_rounded,
+            emoji: '🏃',
+            title: 'Sport',
+            subtitle: 'Séances · Activité · Calories',
+            color: const Color(0xFF2E7D32),
+            gradientEnd: const Color(0xFF66BB6A),
+            onTap: onGoSport,
+          ),
+          const SizedBox(height: 12),
+
+          // GLYCEMIE
+          _MenuCard(
+            icon: Icons.bloodtype_rounded,
+            emoji: '🩸',
+            title: 'Glycémie',
+            subtitle: 'Mesures · Tendances · Alertes',
+            color: const Color(0xFFC62828),
+            gradientEnd: const Color(0xFFEF5350),
+            onTap: onGoGlycemie,
+          ),
+
+          const SizedBox(height: 28),
+
+          // ── Tip ──
+          _TipBanner(),
+        ]),
       ),
     );
   }
 }
 
 // ─────────────────────────────────────────
-// 📊 History Tab
+// Menu Card
 // ─────────────────────────────────────────
-class _HistoryTab extends StatelessWidget {
+class _MenuCard extends StatelessWidget {
+  final IconData icon;
+  final String emoji, title, subtitle;
+  final Color color, gradientEnd;
+  final VoidCallback onTap;
+
+  const _MenuCard({
+    required this.icon,
+    required this.emoji,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.gradientEnd,
+    required this.onTap,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return const Center(child: Text('Non connecté'));
-    }
-
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Text('Historique des repas',
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold)),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, gradientEnd],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('meals')
-                  .where('userId', isEqualTo: user.uid)
-                  .orderBy('timestamp', descending: true)
-                  .limit(50)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.restaurant_menu_outlined,
-                            size: 60, color: Colors.grey),
-                        SizedBox(height: 12),
-                        Text('Aucun repas enregistré',
-                            style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  );
-                }
-
-                final docs = snapshot.data!.docs;
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: docs.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, i) {
-                    final data = docs[i].data() as Map<String, dynamic>;
-                    final ts = (data['timestamp'] as Timestamp?)?.toDate();
-                    final dateStr = ts != null
-                        ? '${ts.day}/${ts.month}/${ts.year} ${ts.hour}:${ts.minute.toString().padLeft(2, '0')}'
-                        : '';
-
-                    return Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2))
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(Icons.restaurant_rounded,
-                                color: AppColors.primary),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(data['name'] ?? 'Repas',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15)),
-                                const SizedBox(height: 4),
-                                Text(dateStr,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textGrey)),
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text('${data['calories'] ?? 0} kcal',
-                                  style: TextStyle(
-                                      color: Colors.deepOrange,
-                                      fontWeight: FontWeight.bold)),
-                              Text('${data['sugar'] ?? 0}g sucre',
-                                  style: TextStyle(
-                                      color: Colors.blue, fontSize: 12)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: color.withOpacity(0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 5))
+          ],
+        ),
+        child: Row(children: [
+          // Emoji large
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
             ),
+            child: Center(
+                child: Text(emoji, style: const TextStyle(fontSize: 28))),
           ),
-        ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 4),
+                  Text(subtitle,
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500)),
+                ]),
+          ),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_forward_ios_rounded,
+                color: Colors.white, size: 14),
+          ),
+        ]),
       ),
     );
   }
@@ -534,9 +463,7 @@ class _ProfileTab extends StatefulWidget {
   final String userName;
   final String? userEmail;
   final Uint8List? profileImageBytes;
-  final VoidCallback onPickImage;
-  final VoidCallback onSignOut;
-  final VoidCallback onProfileSaved;
+  final VoidCallback onPickImage, onSignOut, onProfileSaved;
 
   const _ProfileTab({
     required this.userName,
@@ -552,7 +479,7 @@ class _ProfileTab extends StatefulWidget {
 }
 
 class _ProfileTabState extends State<_ProfileTab> {
-  bool _isDiabetique = true; // loaded from Firestore
+  bool _isDiabetique = true;
   String _diabeteType = '';
 
   @override
@@ -562,12 +489,9 @@ class _ProfileTabState extends State<_ProfileTab> {
   }
 
   @override
-  void didUpdateWidget(_ProfileTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // كيتسمى عند كل rebuild — كيحدث diabeteType إلا تبدل
-    if (oldWidget.userName != widget.userName) {
-      _loadDiabeteType();
-    }
+  void didUpdateWidget(_ProfileTab old) {
+    super.didUpdateWidget(old);
+    if (old.userName != widget.userName) _loadDiabeteType();
   }
 
   Future<void> _loadDiabeteType() async {
@@ -575,12 +499,13 @@ class _ProfileTabState extends State<_ProfileTab> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
       final doc = await FirebaseFirestore.instance
-          .collection('users').doc(user.uid).get();
+          .collection('users')
+          .doc(user.uid)
+          .get();
       if (doc.exists && mounted) {
         final data = doc.data()!;
         setState(() {
           _diabeteType = data['diabeteType'] ?? '';
-          // User is diabetique if diabeteType is set (not empty = diabetique patient)
           _isDiabetique = _diabeteType.isNotEmpty;
         });
       }
@@ -592,142 +517,136 @@ class _ProfileTabState extends State<_ProfileTab> {
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // ── Avatar ──
-            GestureDetector(
-              onTap: widget.onPickImage,
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 55,
-                    backgroundColor: AppColors.primary.withOpacity(0.15),
-                    backgroundImage: widget.profileImageBytes != null
-                        ? MemoryImage(widget.profileImageBytes!)
-                        : null,
-                    child: widget.profileImageBytes == null
-                        ? Text(
-                            widget.userName.isNotEmpty
-                                ? widget.userName[0].toUpperCase()
-                                : 'U',
-                            style: TextStyle(
-                                fontSize: 40,
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold),
-                          )
-                        : null,
+        child: Column(children: [
+          const SizedBox(height: 20),
+          // Avatar
+          GestureDetector(
+            onTap: widget.onPickImage,
+            child: Stack(children: [
+              CircleAvatar(
+                radius: 55,
+                backgroundColor: AppColors.primary.withOpacity(0.15),
+                backgroundImage: widget.profileImageBytes != null
+                    ? MemoryImage(widget.profileImageBytes!)
+                    : null,
+                child: widget.profileImageBytes == null
+                    ? Text(
+                        widget.userName.isNotEmpty
+                            ? widget.userName[0].toUpperCase()
+                            : 'U',
+                        style: TextStyle(
+                            fontSize: 40,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold),
+                      )
+                    : null,
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
+                  child: const Icon(Icons.camera_alt,
+                      size: 14, color: Colors.white),
+                ),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 16),
+          Text(widget.userName,
+              style: const TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.bold)),
+          if (widget.userEmail != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(widget.userEmail!,
+                  style: TextStyle(
+                      color: AppColors.textGrey, fontSize: 14)),
+            ),
+          if (_isDiabetique && _diabeteType.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(_diabeteType,
+                    style: TextStyle(
                         color: AppColors.primary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(Icons.camera_alt,
-                          size: 14, color: Colors.white),
-                    ),
-                  ),
-                ],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600)),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(widget.userName,
-                style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.bold)),
-            if (widget.userEmail != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(widget.userEmail!,
-                    style: TextStyle(
-                        color: AppColors.textGrey, fontSize: 14)),
-              ),
-            if (_isDiabetique && _diabeteType.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(_diabeteType,
-                      style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600)),
-                ),
-              ),
 
-            const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-            // ── Ajouter Accompagnant (uniquement pour les diabétiques) ──
-            if (_isDiabetique)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 20),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.c2, AppColors.c1],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.c3),
+          if (_isDiabetique)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.c2, AppColors.c1],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                child: Column(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.c3),
+              ),
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.people_outline_rounded,
-                              color: AppColors.primary, size: 20),
+                    Row(children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.15),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
+                        child: Icon(Icons.people_outline_rounded,
+                            color: AppColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Accompagnant',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 15,
-                                      color: AppColors.textDark)),
-                              Text('Invitez quelqu\'un à vous suivre',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textGrey)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text('Accompagnant',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                    color: AppColors.textDark)),
+                            Text(
+                                'Invitez quelqu\'un à vous suivre',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textGrey)),
+                          ])),
+                    ]),
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/add-companion'),
-                        icon: const Icon(Icons.person_add_alt_1_rounded,
+                        onPressed: () => Navigator.pushNamed(
+                            context, '/add-companion'),
+                        icon: const Icon(
+                            Icons.person_add_alt_1_rounded,
                             size: 18),
                         label: const Text('Ajouter un accompagnant'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                           textStyle: const TextStyle(
@@ -735,78 +654,117 @@ class _ProfileTabState extends State<_ProfileTab> {
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 8),
-
-            // ── Menu items ──
-            _ProfileMenuItem(
-              icon: Icons.person_outline_rounded,
-              label: 'Mon profil',
-              onTap: () => Navigator.pushNamed(context, '/profile')
-                  .then((_) => widget.onProfileSaved()),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.notifications_outlined,
-              label: 'Notifications',
-              onTap: () => Navigator.pushNamed(context, '/notifications'),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.lock_outline_rounded,
-              label: 'Sécurité',
-              onTap: () => Navigator.pushNamed(context, '/securite'),
-            ),
-            _ProfileMenuItem(
-              icon: Icons.help_outline_rounded,
-              label: 'Aide',
-              onTap: () {},
+                  ]),
             ),
 
-            const SizedBox(height: 20),
+          _ProfileMenuItem(
+            icon: Icons.person_outline_rounded,
+            label: 'Mon profil',
+            onTap: () => Navigator.pushNamed(context, '/profile')
+                .then((_) => widget.onProfileSaved()),
+          ),
+          _ProfileMenuItem(
+            icon: Icons.notifications_outlined,
+            label: 'Notifications',
+            onTap: () =>
+                Navigator.pushNamed(context, '/notifications'),
+          ),
+          _ProfileMenuItem(
+            icon: Icons.lock_outline_rounded,
+            label: 'Sécurité',
+            onTap: () => Navigator.pushNamed(context, '/securite'),
+          ),
+          _ProfileMenuItem(
+            icon: Icons.help_outline_rounded,
+            label: 'Aide',
+            onTap: () {},
+          ),
 
-            // ── Sign out ──
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: widget.onSignOut,
-                icon: const Icon(Icons.logout_rounded, color: Colors.red),
-                label: const Text('Déconnexion',
-                    style: TextStyle(color: Colors.red)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
+          const SizedBox(height: 20),
+
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: widget.onSignOut,
+              icon:
+                  const Icon(Icons.logout_rounded, color: Colors.red),
+              label: const Text('Déconnexion',
+                  style: TextStyle(color: Colors.red)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
 }
 
 // ─────────────────────────────────────────
-// ── Reusable Widgets
+// Placeholder screen (Sport / Glycémie)
 // ─────────────────────────────────────────
-
-class _StatCard extends StatelessWidget {
+class _PlaceholderScreen extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String value;
-  final String unit;
   final Color color;
+  const _PlaceholderScreen(
+      {required this.icon, required this.label, required this.color});
 
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.unit,
-    required this.color,
-  });
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: color,
+        elevation: 0,
+        title: Text(label,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 20)),
+      ),
+      body: Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration:
+                BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: color, size: 40),
+          ),
+          const SizedBox(height: 16),
+          Text('Écran $label',
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark)),
+          const SizedBox(height: 8),
+          Text('À implémenter',
+              style: const TextStyle(color: AppColors.textGrey)),
+        ]),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────
+// Shared widgets
+// ─────────────────────────────────────────
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String label, value, unit;
+  final Color color;
+  const _StatCard(
+      {required this.icon,
+      required this.label,
+      required this.value,
+      required this.unit,
+      required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -822,66 +780,18 @@ class _StatCard extends StatelessWidget {
               offset: const Offset(0, 4))
         ],
       ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 26),
-          const SizedBox(height: 8),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-          Text(unit.isEmpty ? label : unit,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-          if (unit.isNotEmpty)
-            Text(label,
-                style:
-                    TextStyle(fontSize: 11, color: Colors.grey.shade400)),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: color.withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.white, size: 30),
-            const SizedBox(height: 8),
-            Text(label,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13)),
-          ],
-        ),
-      ),
+      child: Column(children: [
+        Icon(icon, color: color, size: 26),
+        const SizedBox(height: 8),
+        Text(value,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        Text(unit.isEmpty ? label : unit,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+        if (unit.isNotEmpty)
+          Text(label,
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+      ]),
     );
   }
 }
@@ -901,7 +811,7 @@ class _TipBanner extends StatelessWidget {
     {
       'icon': '💧',
       'title': 'Hydratation',
-      'text': 'Buvez au moins 1,5L d\'eau par jour pour aider les reins.'
+      'text': 'Buvez au moins 1,5L d\'eau par jour.'
     },
   ];
 
@@ -913,36 +823,26 @@ class _TipBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withOpacity(0.85),
-            AppColors.primary,
-          ],
-        ),
+            colors: [AppColors.primary.withOpacity(0.85), AppColors.primary]),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        children: [
-          Text(tip['icon'] as String, style: const TextStyle(fontSize: 30)),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tip['title'] as String,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(tip['text'] as String,
-                    style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
-                        fontSize: 12)),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: Row(children: [
+        Text(tip['icon'] as String, style: const TextStyle(fontSize: 30)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tip['title'] as String,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(tip['text'] as String,
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.85), fontSize: 12)),
+          ]),
+        ),
+      ]),
     );
   }
 }
@@ -951,12 +851,8 @@ class _ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-
-  const _ProfileMenuItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _ProfileMenuItem(
+      {required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -978,8 +874,7 @@ class _ProfileMenuItem extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.w500)),
         trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
         onTap: onTap,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
