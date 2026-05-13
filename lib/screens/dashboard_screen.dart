@@ -170,7 +170,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        // Si on est pas sur l'onglet Home (index 0), revenir à Home
+        if (_currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+          _navKey.currentState?.setPage(0);
+        }
+        // Sinon on ne fait rien : on bloque le retour vers WelcomeScreen
+      },
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       body: IndexedStack(
         index: _currentIndex,
@@ -194,6 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         onTap: (index) => setState(() => _currentIndex = index),
       ),
+    ),
     );
   }
 }
@@ -361,9 +372,6 @@ class _HomeTab extends StatelessWidget {
           ),
 
           const SizedBox(height: 28),
-
-          // ── Tip ──
-          _TipBanner(),
         ]),
       ),
     );
@@ -791,57 +799,6 @@ class _StatCard extends StatelessWidget {
         if (unit.isNotEmpty)
           Text(label,
               style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
-      ]),
-    );
-  }
-}
-
-class _TipBanner extends StatelessWidget {
-  final List<Map<String, dynamic>> _tips = const [
-    {
-      'icon': '🩸',
-      'title': 'Contrôle glycémique',
-      'text': 'Mangez à intervalles réguliers pour stabiliser votre glycémie.'
-    },
-    {
-      'icon': '🥦',
-      'title': 'Légumes recommandés',
-      'text': 'Privilégiez les légumes verts à faible index glycémique.'
-    },
-    {
-      'icon': '💧',
-      'title': 'Hydratation',
-      'text': 'Buvez au moins 1,5L d\'eau par jour.'
-    },
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final tip = _tips[DateTime.now().hour % _tips.length];
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-            colors: [AppColors.primary.withOpacity(0.85), AppColors.primary]),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(children: [
-        Text(tip['icon'] as String, style: const TextStyle(fontSize: 30)),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tip['title'] as String,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14)),
-            const SizedBox(height: 4),
-            Text(tip['text'] as String,
-                style: TextStyle(
-                    color: Colors.white.withOpacity(0.85), fontSize: 12)),
-          ]),
-        ),
       ]),
     );
   }
